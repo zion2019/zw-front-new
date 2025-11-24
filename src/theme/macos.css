@@ -1,0 +1,270 @@
+/* macOS Safari 风格主题 */
+
+/* 变量定义 */
+:root {
+  /* 颜色变量 */
+  --macos-red: #FF5F57;
+  --macos-yellow: #FFBD2E;
+  --macos-green: #28CA42;
+  --macos-blue: #007AFF;
+  --macos-purple: #5856D6;
+  --macos-gray: #8E8E93;
+  --macos-dark-gray: #6D6D70;
+  --macos-toolbar-bg: #F5F5F7;
+  --macos-tab-active: #FFFFFF;
+  --macos-tab-inactive: #E8E8ED;
+  
+  /* 阴影 */
+  --macos-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  --macos-shadow-heavy: 0 4px 20px rgba(0, 0, 0, 0.15);
+  
+  /* 圆角 */
+  --macos-radius: 8px;
+  --macos-radius-small: 4px;
+  --macos-radius-large: 12px;
+}
+
+/* 全局样式 */
+.macos-theme {
+  background: linear-gradient(135deg, #F5F7FA 0%, #E4E8F1 100%);
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+}
+
+/* macOS 顶部控制栏 - 手绘风格 */
+.macos-controls {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--macos-toolbar-bg);
+  border-bottom: 2px solid #000;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
+  height: 48px;
+  position: relative;
+  z-index: 10;
+  min-width: 100%;
+  box-sizing: border-box;
+}
+
+/* macOS 控制按钮样式 */
+.macos-control-buttons {
+  display: flex;
+  gap: 8px;
+  margin-right: 0;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.macos-control-button {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 关闭按钮 - 红色 */
+.macos-control-button.home {
+  background: var(--macos-red);
+  background: linear-gradient(145deg, #FF5F57, #E54E47);
+}
+
+/* 最小化按钮 - 黄色 */
+.macos-control-button.back {
+  background: var(--macos-yellow);
+  background: linear-gradient(145deg, #FFBD2E, #E6A923);
+}
+
+/* 最大化按钮 - 绿色 */
+.macos-control-button.forward {
+  background: var(--macos-green);
+  background: linear-gradient(145deg, #28CA42, #21B038);
+}
+
+.macos-control-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+}
+
+.macos-control-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+/* Iconify Carbon 图标样式 */
+.macos-control-button div {
+  font-size: 12px;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.macos-control-button:hover div {
+  opacity: 1;
+}
+
+/* 侧边栏 */
+.macos-sidebar {
+  position: fixed;
+  left: -280px;
+  top: 0;
+  width: 280px;
+  height: 100vh;
+  background: var(--macos-toolbar-bg);
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  transition: left 0.3s ease;
+  z-index: 1000;
+  box-shadow: var(--macos-shadow-heavy);
+  padding-top: 60px;
+}
+
+.macos-sidebar.open {
+  left: 0;
+}
+
+.macos-sidebar-handle {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 60px;
+  background: var(--macos-toolbar-bg);
+  border: 2px solid #000;
+  border-radius: 0 12px 12px 0;
+  border-left: none;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1), 2px 0 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.macos-sidebar-handle:hover {
+  left: 5px;
+  background: var(--macos-tab-active);
+  transform: translateY(-50%) translateX(2px);
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.15), 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.macos-sidebar-handle.open {
+  left: 280px;
+}
+
+.macos-sidebar-handle.open:hover {
+  left: 285px;
+}
+
+.handle-icon {
+  font-size: 12px;
+  color: #000;
+  font-weight: bold;
+  transition: transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.macos-sidebar-handle:hover .handle-icon {
+  transform: scale(1.1);
+}
+
+/* 内容区域 - 固定高度模拟 Safari 窗口 */
+.macos-content {
+  position: fixed;
+  top: 48px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 16px;
+  overflow-y: auto;
+  background: white;
+  z-index: 1;
+}
+
+/* 页面容器样式 */
+.page-container {
+  min-height: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 手绘动漫风格元素 */
+.anime-element {
+  border: 2px solid #000;
+  border-radius: var(--macos-radius);
+  background: white;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.anime-element:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* 按钮样式 */
+.macos-button {
+  background: linear-gradient(145deg, #6E8EFB, #A777E3);
+  border: none;
+  border-radius: var(--macos-radius);
+  padding: 10px 20px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--macos-shadow);
+}
+
+.macos-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--macos-shadow-heavy);
+}
+
+/* 卡片样式 */
+.macos-card {
+  background: white;
+  border-radius: var(--macos-radius);
+  padding: 16px;
+  box-shadow: var(--macos-shadow);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  margin-bottom: 16px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .macos-controls {
+    padding: 8px 12px;
+  }
+  
+  .macos-nav-button {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .macos-nav-button svg {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .macos-sidebar {
+    width: 250px;
+  }
+  
+  .macos-content {
+    padding: 16px;
+  }
+}
