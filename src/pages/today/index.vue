@@ -10,9 +10,9 @@
         </p>
       </div>
 
-      <!-- 今日概览 -->
+      <!-- summary -->
       <div class="today-overview">
-        <div class="overview-card anime-element">
+        <div class="overview-card anime-element card-base">
           <div class="overview-item">
             <div class="overview-icon">
               📚
@@ -57,7 +57,7 @@
         </div>
       </div>
 
-      <!-- 待办事项 -->
+      <!-- task window -->
       <div class="section">
         <div class="section-header">
           <h2>待办事项</h2>
@@ -106,52 +106,63 @@
         </div>
       </div>
 
-      <!-- 学习计划 -->
-      <div class="section">
-        <div class="section-header">
-          <h2>学习计划</h2>
-          <button class="add-btn" @click="addLearningPlan">
-            + 添加
-          </button>
-        </div>
-
-        <div v-if="learningPlans.length === 0" class="empty-state">
-          <div class="empty-icon">
-            📖
+      <!-- learning window -->
+      <div class="learning-section anime-element card-base">
+        <div class="learning-header-custom">
+          <div class="header-left">
+            <span class="review-count" :class="reviewCountClass">
+              <template v-if="reviewStatus.todaySubjectTotalCnt === 0">
+                There is no subject to review today,enjoy!
+              </template>
+              <template v-else-if="reviewStatus.todaySubjectTotalCnt - reviewStatus.todayFinishedSubjectCnt === 0">
+                Great! all subjects have been reviewed!
+              </template>
+              <template v-else>
+                Today's subjects to review:
+                <span class="number-bubble">{{ reviewStatus.todaySubjectTotalCnt - reviewStatus.todayFinishedSubjectCnt }}</span>
+              </template>
+            </span>
           </div>
-          <p>暂无学习计划</p>
-          <button class="macos-button" @click="addLearningPlan">
-            制定学习计划
-          </button>
+          <div class="header-right" @click="goToLearning">
+            <span class="learning-home-link">More →</span>
+          </div>
         </div>
 
-        <div v-else class="learning-plans">
-          <div
-            v-for="plan in learningPlans"
-            :key="plan.id"
-            class="plan-card anime-element"
-          >
-            <div class="plan-header">
-              <h3>{{ plan.subject }}</h3>
-              <span class="plan-time">{{ plan.duration }}分钟</span>
-            </div>
-            <p class="plan-description">
-              {{ plan.description }}
-            </p>
-            <div class="plan-progress">
-              <div class="progress-bar">
-                <div
-                  class="progress-fill"
-                  :style="{ width: `${plan.progress}%` }"
-                />
+        <div class="learning-body-custom">
+          <div v-if="reviewSubjects.length === 0" class="empty-learning-custom">
+            <div class="empty-card">
+              <div class="empty-icon">
+                +
               </div>
-              <span class="progress-text">{{ plan.progress }}%</span>
+            </div>
+          </div>
+          <div v-else class="subjects-container-custom">
+            <div class="subjects-scroll-custom">
+              <div
+                v-for="subject in reviewSubjects"
+                :key="subject.id"
+                class="subject-card-custom"
+                :style="{ backgroundImage: `url(${subject.coverImage})` }"
+                @click="goToReview(subject)"
+              >
+                <div class="subject-overlay">
+                  <div class="subject-title-custom">
+                    {{ subject.title }}
+                  </div>
+                  <div class="subject-progress">
+                    {{ subject.todayFinishedKnowledgeCnt }}/{{ subject.todayKnowledgeTotalCnt }}
+                  </div>
+                  <div class="review-btn" @click.stop="goToReview(subject)">
+                    review >
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 账单提醒 -->
+      <!-- bill window -->
       <div class="section">
         <div class="section-header">
           <h2>账单提醒</h2>
@@ -168,7 +179,7 @@
           <div
             v-for="bill in billReminders"
             :key="bill.id"
-            class="bill-card anime-element"
+            class="bill-card anime-element card-base"
           >
             <div class="bill-info">
               <div class="bill-title">
@@ -192,7 +203,9 @@
 </template>
 
 <script setup lang="ts">
+import type { ReviewSubject } from '@/api/learning'
 import { computed, onMounted, ref } from 'vue'
+import { getTodayReview } from '@/api/learning'
 import MacOSLayout from '@/components/MacOSLayout.vue'
 
 interface Task {
@@ -200,14 +213,6 @@ interface Task {
   title: string
   completed: boolean
   time: string
-}
-
-interface LearningPlan {
-  id: number
-  subject: string
-  description: string
-  duration: number
-  progress: number
 }
 
 interface BillReminder {
@@ -233,11 +238,25 @@ const tasks = ref<Task[]>([
   { id: 3, title: '整理项目文档', completed: false, time: '16:00' },
 ])
 
-// 学习计划
-const learningPlans = ref<LearningPlan[]>([
-  { id: 1, subject: 'JavaScript高级编程', description: '学习闭包和原型链', duration: 60, progress: 75 },
-  { id: 2, subject: 'TypeScript实战', description: '类型系统和泛型', duration: 45, progress: 30 },
-])
+// 学习复习数据
+const reviewSubjects = ref<ReviewSubject[]>([])
+
+// 复习数量文案和样式
+const reviewStatus = ref({
+  todayFinishedSubjectCnt: 0,
+  todaySubjectTotalCnt: 0,
+})
+
+const reviewCountClass = computed(() => {
+  const finished = reviewStatus.value.todayFinishedSubjectCnt
+  const total = reviewStatus.value.todaySubjectTotalCnt
+  const remaining = total - finished
+
+  if (total === 0 || remaining === 0) {
+    return 'text-green'
+  }
+  return 'text-warning'
+})
 
 // 账单提醒
 const billReminders = ref<BillReminder[]>([
@@ -291,21 +310,39 @@ function deleteTask(taskId: number) {
   todayStats.value.tasksCompleted = tasks.value.filter(t => t.completed).length
 }
 
-// 学习计划操作
-function addLearningPlan() {
-  const newPlan: LearningPlan = {
-    id: Date.now(),
-    subject: '新学科',
-    description: '学习描述',
-    duration: 30,
-    progress: 0,
+// 获取今日复习数据
+async function loadTodayReview() {
+  try {
+    const response = await getTodayReview()
+    reviewSubjects.value = response.data.reviewSubjects
+    reviewStatus.value = {
+      todayFinishedSubjectCnt: response.data.todayFinishedSubjectCnt,
+      todaySubjectTotalCnt: response.data.todaySubjectTotalCnt,
+    }
+    console.log('今日复习数据加载成功:', response.data)
   }
-  learningPlans.value.unshift(newPlan)
+  catch (error) {
+    console.error('加载今日复习数据失败:', error)
+  }
+}
+
+// 去学习按钮点击处理
+function goToLearning() {
+  console.log('跳转到学习页面')
+  // 这里可以添加路由跳转逻辑
+  // router.push('/learning')
+}
+
+// 去复习点击处理
+function goToReview(subject: ReviewSubject) {
+  console.log('跳转到复习页面:', subject.title)
+  // 这里可以添加路由跳转逻辑
+  // router.push(`/review/${subject.id}`)
 }
 
 // 页面加载时初始化数据
 onMounted(() => {
-  console.log('今日页面加载完成')
+  loadTodayReview()
 })
 </script>
 
@@ -341,8 +378,6 @@ onMounted(() => {
 }
 
 .overview-card {
-  background: white;
-  border-radius: var(--macos-radius-large);
   padding: 24px;
   display: flex;
   justify-content: space-around;
@@ -378,6 +413,18 @@ onMounted(() => {
 
 .section {
   margin-bottom: 30px;
+}
+
+/* 公共卡片样式 */
+.card-base {
+  background: white;
+  border-radius: var(--macos-radius-large);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.card-base:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .section-header {
@@ -492,66 +539,202 @@ onMounted(() => {
   opacity: 1;
 }
 
-.learning-plans {
+/* 学习计划新样式 */
+.learning-section {
+  height: 300px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  overflow: hidden;
+  margin-bottom: 30px;
+  position: relative;
 }
 
-.plan-card {
-  background: white;
-  border-radius: var(--macos-radius);
-  padding: 20px;
-}
-
-.plan-header {
+.learning-header-custom {
+  height: 50px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  padding: 0 20px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
-.plan-header h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
+.header-left .review-count {
+  font-size: 18px;
+  font-weight: 700;
 }
 
-.plan-time {
-  font-size: 14px;
-  color: var(--macos-dark-gray);
+.header-left .review-count.text-green {
+  color: #4caf50;
 }
 
-.plan-description {
-  margin: 0 0 16px 0;
+.header-left .review-count.text-warning {
+  color: #333;
+}
+
+.number-bubble {
+  display: inline-block;
+  background: #ff4757;
+  color: white;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-left: 4px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.header-right .learning-home-link {
+  font-size: 15px;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.header-right .learning-home-link:hover {
   color: #666;
-  font-size: 14px;
 }
 
-.plan-progress {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.progress-bar {
+/* 主体任务区 */
+.learning-body-custom {
   flex: 1;
-  height: 6px;
-  background: var(--macos-gray);
-  border-radius: 3px;
   overflow: hidden;
 }
 
-.progress-fill {
+.empty-learning-custom {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
   height: 100%;
-  background: var(--macos-green);
-  transition: width 0.3s ease;
 }
 
-.progress-text {
+.empty-card {
+  width: 200px;
+  height: 150px;
+  background: #f8f8f8;
+  border: 2px dashed #ddd;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-card .empty-icon {
+  font-size: 48px;
+  color: #ccc;
+}
+
+.subjects-container-custom {
+  height: 100%;
+  padding-left: 20px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.subjects-scroll-custom {
+  display: flex;
+  gap: 20px;
+  height: 100%;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.subject-card-custom {
+  flex: 0 0 auto;
+  width: 200px;
+  height: 200px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 12px;
+  cursor: pointer;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.subject-card-custom:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.subject-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.subject-progress {
   font-size: 12px;
-  color: var(--macos-dark-gray);
-  min-width: 40px;
+  color: white;
+  font-weight: 600;
+}
+
+.subject-title-custom {
+  font-size: 14px;
+  color: white;
+  font-weight: 500;
+  flex: 1;
+}
+
+.review-btn {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background: #4caf50;
+  border-radius: 16px;
+  padding: 6px 12px;
+  font-size: 10px;
+  color: white;
+  cursor: pointer;
+  transition:
+    background 0.3s ease,
+    transform 0.2s ease;
+  font-weight: 500;
+}
+
+.review-btn:hover {
+  background: #45a049;
+  transform: scale(1.05);
+}
+
+/* 动画效果 */
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* 滚动条样式 - 简洁黑色圆角轨道 */
+.subjects-container-custom::-webkit-scrollbar {
+  height: 4px;
+}
+
+.subjects-container-custom::-webkit-scrollbar-track {
+  background: #e0e0e0;
+  border-radius: 2px;
+}
+
+.subjects-container-custom::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 2px;
+}
+
+.subjects-container-custom::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 .bill-reminders {
@@ -561,8 +744,6 @@ onMounted(() => {
 }
 
 .bill-card {
-  background: white;
-  border-radius: var(--macos-radius);
   padding: 16px;
 }
 

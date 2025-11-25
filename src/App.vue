@@ -28,7 +28,8 @@ onLaunch((options) => {
   }
   else {
     // 用户未登录，跳转到登录页面
-    navigateToInterceptor.invoke({ url: '/pages/login' })
+    navigateToInterceptor.invoke({ url: '/pages/today/index' })
+    // navigateToInterceptor.invoke({ url: '/pages/login' })
   }
 })
 
