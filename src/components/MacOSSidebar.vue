@@ -1,10 +1,10 @@
 <template>
   <!-- 侧边栏遮罩层 -->
-  <div 
-    v-if="isOpen" 
+  <div
+    v-if="isOpen"
     class="sidebar-overlay"
     @click="toggleSidebar"
-  ></div>
+  />
 
   <!-- 侧边栏把手 -->
   <div
@@ -21,9 +21,9 @@
   <div class="macos-sidebar anime-element" :class="{ open: isOpen }">
     <div class="sidebar-header">
       <h3>Z-Learning</h3>
-      <button class="close-sidebar" @click="toggleSidebar">
+      <!-- <button class="close-sidebar" @click="toggleSidebar">
         ×
-      </button>
+      </button> -->
     </div>
 
     <nav class="sidebar-nav">
@@ -41,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 interface NavItem {
@@ -168,6 +168,4 @@ onMounted(() => {
 .nav-label {
   font-size: 14px;
 }
-
-
 </style>

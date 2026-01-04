@@ -19,10 +19,10 @@
             </div>
             <div class="overview-content">
               <div class="overview-label">
-                学习进度
+                待复习科目
               </div>
               <div class="overview-value">
-                {{ todayStats.learningProgress }}%
+                {{ todayStats.todayReviewedSubjectCnt }}/{{ todayStats.unReviewSubjectCnt }}
               </div>
             </div>
           </div>
@@ -33,7 +33,7 @@
             </div>
             <div class="overview-content">
               <div class="overview-label">
-                任务完成
+                待完成任务
               </div>
               <div class="overview-value">
                 {{ todayStats.tasksCompleted }} / {{ todayStats.totalTasks }}
@@ -47,7 +47,7 @@
             </div>
             <div class="overview-content">
               <div class="overview-label">
-                今日支出
+                这个月支出
               </div>
               <div class="overview-value">
                 ¥{{ todayStats.todaySpending }}
@@ -95,7 +95,7 @@
               </div>
             </div>
             <div class="task-actions">
-              <button class="action-btn" @click="editTask(task)">
+              <button class="action-btn">
                 ✏️
               </button>
               <button class="action-btn" @click="deleteTask(task.id)">
@@ -225,7 +225,8 @@ interface BillReminder {
 
 // 今日数据
 const todayStats = ref({
-  learningProgress: 65,
+  todayReviewedSubjectCnt: 10,
+  unReviewSubjectCnt: 65,
   tasksCompleted: 3,
   totalTasks: 5,
   todaySpending: 128.5,
@@ -295,13 +296,6 @@ function addTask() {
   }
   tasks.value.unshift(newTask)
   todayStats.value.totalTasks = tasks.value.length
-}
-
-function editTask(task: Task) {
-  const newTitle = prompt('修改任务标题:', task.title)
-  if (newTitle) {
-    task.title = newTitle
-  }
 }
 
 function deleteTask(taskId: number) {
