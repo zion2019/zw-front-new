@@ -1,32 +1,29 @@
 <template>
-  <div class="stage-container">
+  <div class="knowledge-container">
     <z-paging
       ref="pagingRef"
-      v-model="stageList"
+      v-model="knowledgeList"
       :fixed="false"
-      height="400px"
+      :height="listHeight"
       :auto-show-back-to-top="true"
       @query="queryList"
     >
-      <div class="stage-list">
+      <div class="knowledge-list">
         <div
-          v-for="stage in stageList"
-          :key="stage.id"
-          class="stage-card anime-element card-base"
+          v-for="knowledge in knowledgeList"
+          :key="knowledge.id"
+          class="knowledge-card anime-element card-base"
+          @click="goToKnowledgeDetail(knowledge)"
         >
-          <div class="stage-name">
-            {{ stage.name }}
+          <div class="knowledge-name">
+            {{ knowledge.name }}
           </div>
-          <div class="stage-description">
-            {{ stage.description }}
+          <div class="knowledge-description">
+            {{ knowledge.description }}
           </div>
-          <div class="stage-meta">
-            <div class="meta-item">
-              <span class="meta-label">知识点数：</span>
-              <span class="meta-value">{{ stage.knowledgePointCnt }}</span>
-            </div>
-            <div class="status-bubble" :class="[`status-${stage.status}`]">
-              {{ getStatusText(stage.status) }}
+          <div class="knowledge-meta">
+            <div class="status-bubble" :class="[`status-${knowledge.status}`]">
+              {{ getStatusText(knowledge.status) }}
             </div>
           </div>
         </div>
@@ -38,28 +35,30 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-interface Stage {
+interface Knowledge {
   id: number
   name: string
   description: string
-  knowledgePointCnt: number
-  status: 'learning' | 'delayed' | 'mastered'
+  status: 'learning' | 'mastered' | 'reviewing'
 }
 
 defineProps<{
-  subjectId: number
+  stageId: number
 }>()
 
-// 阶段列表数据
-const stageList = ref<Stage[]>([])
+// 知识点列表数据
+const knowledgeList = ref<Knowledge[]>([])
 const pagingRef = ref()
+
+// 列表高度（由父组件传入）
+const listHeight = ref('400px')
 
 // 获取状态文本
 function getStatusText(status: string) {
   const statusMap: { [key: string]: string } = {
     learning: '学习中',
-    delayed: '延期',
     mastered: '已掌握',
+    reviewing: '复习中',
   }
   return statusMap[status] || '学习中'
 }
@@ -68,23 +67,30 @@ function getStatusText(status: string) {
 function queryList(pageNo: number, pageSize: number) {
   // 模拟异步请求
   setTimeout(() => {
-    const mockData: Stage[] = Array.from({ length: pageSize }, (_, index) => ({
+    const mockData: Knowledge[] = Array.from({ length: pageSize }, (_, index) => ({
       id: (pageNo - 1) * pageSize + index + 1,
-      name: `阶段 ${(pageNo - 1) * pageSize + index + 1}，这是一个很长的阶段名称测试，用于展示缩略效果`,
-      description: `这是阶段 ${(pageNo - 1) * pageSize + index + 1} 的描述信息，用于展示阶段详情`,
-      knowledgePointCnt: Math.floor(Math.random() * 50) + 10,
-      status: ['learning', 'delayed', 'mastered'][Math.floor(Math.random() * 3)] as any,
+      name: `知识点 ${(pageNo - 1) * pageSize + index + 1}，这是一个很长的知识点名称测试，用于展示缩略效果`,
+      description: `这是知识点 ${(pageNo - 1) * pageSize + index + 1} 的描述信息，用于展示知识点详情`,
+      status: ['learning', 'mastered', 'reviewing'][Math.floor(Math.random() * 3)] as any,
     }))
 
     pagingRef.value?.complete(mockData)
   }, 500)
+}
+
+// 跳转到知识点详情
+function goToKnowledgeDetail(knowledge: Knowledge) {
+  console.log('跳转到知识点详情:', knowledge.id)
+  uni.navigateTo({
+    url: `/pages/learning/knowledge/knowledge-det?id=${knowledge.id}`,
+  })
 }
 </script>
 
 <style scoped>
 @import '../../../theme/macos.css';
 
-.stage-container {
+.knowledge-container {
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -92,23 +98,20 @@ function queryList(pageNo: number, pageSize: number) {
   overflow-x: hidden;
 }
 
-/* 阶段列表 */
-.stage-list {
+/* 知识点列表 */
+.knowledge-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding-bottom: 20px;
 }
 
-.stage-card {
+.knowledge-card {
   padding: 16px;
   cursor: pointer;
-  border: 2px solid #000;
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
 }
 
-.stage-card:hover {
+.knowledge-card:hover {
   box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.15);
   transform: translate(-2px, -2px);
 }
@@ -119,7 +122,7 @@ function queryList(pageNo: number, pageSize: number) {
   border-radius: var(--macos-radius-large);
 }
 
-.stage-name {
+.knowledge-name {
   font-size: 16px;
   font-weight: 600;
   color: #333;
@@ -129,7 +132,7 @@ function queryList(pageNo: number, pageSize: number) {
   white-space: nowrap;
 }
 
-.stage-description {
+.knowledge-description {
   font-size: 13px;
   color: var(--macos-dark-gray);
   margin-bottom: 12px;
@@ -141,24 +144,10 @@ function queryList(pageNo: number, pageSize: number) {
   line-clamp: 2;
 }
 
-.stage-meta {
+.knowledge-meta {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-}
-
-.meta-item {
-  font-size: 12px;
-  color: var(--macos-dark-gray);
-}
-
-.meta-label {
-  color: var(--macos-gray);
-}
-
-.meta-value {
-  color: #333;
-  font-weight: 500;
 }
 
 /* 状态气泡 */
@@ -174,14 +163,14 @@ function queryList(pageNo: number, pageSize: number) {
   color: var(--macos-blue);
 }
 
-.status-delayed {
-  background: #fff3e0;
-  color: #f57c00;
-}
-
 .status-mastered {
   background: #e8f5e9;
   color: #43a047;
+}
+
+.status-reviewing {
+  background: #fff3e0;
+  color: #f57c00;
 }
 
 /* 动画效果 */
@@ -191,15 +180,15 @@ function queryList(pageNo: number, pageSize: number) {
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .stage-card {
+  .knowledge-card {
     padding: 14px;
   }
 
-  .stage-name {
+  .knowledge-name {
     font-size: 15px;
   }
 
-  .stage-description {
+  .knowledge-description {
     font-size: 12px;
   }
 }

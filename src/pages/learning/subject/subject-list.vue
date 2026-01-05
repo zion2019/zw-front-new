@@ -53,6 +53,11 @@
           </div>
         </div>
       </z-paging>
+
+      <!-- 右下角悬浮新增按钮 -->
+      <div class="floating-add-btn" @click="goToAddSubject">
+        <div class="i-carbon-add text-white" />
+      </div>
     </div>
   </MacOSLayout>
 </template>
@@ -112,9 +117,16 @@ function goToSubjectDetail(subject: Subject) {
 // 跳转到复习页面
 function goToReview(subject: Subject) {
   console.log('跳转到复习页面:', subject.id)
-  // uni.navigateTo({
-  //   url: `/pages/learning/review?subjectId=${subject.id}`
-  // })
+  uni.navigateTo({
+    url: `/pages/learning/practice/index?subjectId=${subject.id}`,
+  })
+}
+
+// 跳转到新增科目页面
+function goToAddSubject() {
+  uni.navigateTo({
+    url: '/pages/learning/subject/subject-edit',
+  })
 }
 </script>
 
@@ -290,6 +302,43 @@ function goToReview(subject: Subject) {
 
   .page-title {
     font-size: 24px;
+  }
+}
+
+/* 右下角悬浮新增按钮 */
+.floating-add-btn {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 56px;
+  height: 56px;
+  background: var(--macos-blue);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+  background: rgba(0, 122, 255, 0.85);
+  z-index: 100;
+}
+
+.floating-add-btn:hover {
+  background: rgba(0, 122, 255, 1);
+  transform: scale(1.1);
+}
+
+.floating-add-btn:active {
+  transform: scale(1);
+}
+
+@media (max-width: 768px) {
+  .floating-add-btn {
+    right: 20px;
+    bottom: 20px;
+    width: 50px;
+    height: 50px;
   }
 }
 </style>

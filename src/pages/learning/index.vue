@@ -104,7 +104,6 @@ const learningStats = ref({
 
 // 跳转到学习页面
 function goToLearning() {
-  console.log('跳转到学习页面')
   uni.navigateTo({
     url: '/pages/learning/subject/subject-list',
   })
@@ -112,28 +111,30 @@ function goToLearning() {
 
 // 跳转到复习页面
 function goToReview() {
-  console.log('跳转到复习页面')
-  // router.push('/learning/review')
+  uni.navigateTo({
+    url: '/pages/learning/practice/index',
+  })
 }
 
 // 跳转到涨个知识页面
 function goToLearnKnowledge() {
-  console.log('跳转到涨个知识页面')
-  // router.push('/learning/knowledge')
+  uni.navigateTo({
+    url: '/pages/learning/knowledge/knowledge-edit',
+  })
 }
-
 // 跳转到标签管理页面
 function goToTagManagement() {
-  console.log('跳转到标签管理页面')
-  // router.push('/learning/tags')
+  uni.navigateTo({
+    url: '/pages/learning/tag/tag-list',
+  })
 }
 
 // 跳转到学习策略管理页面
 function goToStrategyManagement() {
-  console.log('跳转到学习策略管理页面')
-  // router.push('/learning/strategies')
+  uni.navigateTo({
+    url: '/pages/learning/strategy/strategy-list',
+  })
 }
-
 // 页面加载时初始化数据
 onMounted(() => {
   console.log('学习首页加载')

@@ -48,6 +48,8 @@ onHide(() => {
 </script>
 
 <style lang="scss">
+  @import 'uview-pro/index.scss';
+
 /* #ifdef H5 */
 uni-page-head {
   display: none;

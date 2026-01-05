@@ -15,10 +15,7 @@
           <!-- 右上角编辑图标 -->
           <div class="cover-actions">
             <div class="icon-btn icon-btn-edit" @click="editSubject">
-              ✏️
-            </div>
-            <div class="icon-btn icon-btn-delete" @click="deleteSubject">
-              🗑️
+              <div class="i-carbon-edit text-black" />
             </div>
           </div>
           <!-- 悬浮标题和标签 -->
@@ -65,7 +62,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import MacOSLayout from '@/components/MacOSLayout.vue'
-import StageList from '../stage/index.vue'
+import StageList from '../stage/stage-list.vue'
 
 const subjectId = ref<number>(0)
 
@@ -96,21 +93,6 @@ function loadSubjectDetail() {
   }
 }
 
-// 删除科目
-function deleteSubject() {
-  console.log('删除科目:', subjectId.value)
-  uni.showModal({
-    title: '确认删除',
-    content: '确定要删除这个科目吗？',
-    success: (res) => {
-      if (res.confirm) {
-        // 执行删除逻辑
-        uni.navigateBack()
-      }
-    },
-  })
-}
-
 // 编辑科目
 function editSubject() {
   console.log('编辑科目:', subjectId.value)
@@ -135,7 +117,6 @@ function goToReview() {
   padding: 0;
   max-width: 800px;
   margin: 0 auto;
-  height: 100vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -144,7 +125,7 @@ function goToReview() {
 .subject-detail {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 92vh;
 }
 
 /* 封面区域 - 占3/10高度 */
@@ -183,13 +164,13 @@ function goToReview() {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
   cursor: pointer;
   transition: all 0.3s ease;
   backdrop-filter: blur(4px);
 }
 
 .icon-btn:hover {
+  background: rgba(255, 255, 255, 1);
   transform: scale(1.1);
 }
 
@@ -246,23 +227,18 @@ function goToReview() {
   display: flex;
   overflow: hidden;
   min-height: 0;
+  height: 62vh;
 }
 
 /* 左栏：阶段列表 */
 .stage-section {
   flex: 1;
   overflow: hidden;
+  height: 62vh;
   padding-top: 5px;
   display: flex;
   flex-direction: column;
   min-height: 0;
-}
-
-/* 右栏：暂留空 */
-.right-section {
-  flex: 0 0 300px;
-  background: #f8f9fa;
-  border-left: 2px solid #e0e0e0;
 }
 
 /* 底部去复习按钮 */
@@ -318,8 +294,12 @@ function goToReview() {
 /* 响应式设计 */
 @media (max-width: 768px) {
   .cover-section {
-    height: 25vh;
+    height: 30vh;
     min-height: 180px;
+  }
+
+  .content-section {
+    height: 62vh;
   }
 
   .cover-overlay {
