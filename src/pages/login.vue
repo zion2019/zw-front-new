@@ -132,7 +132,10 @@ const showRegister = ref(false)
 
 async function handleLogin() {
   if (!loginForm.username || !loginForm.password) {
-    alert('请输入用户名和密码')
+    uni.showToast({
+      title: '请输入用户名和密码',
+      icon: 'none',
+    })
     return
   }
 
@@ -154,12 +157,18 @@ async function handleLogin() {
       router.push('/pages/today/index')
     }
     else {
-      alert(`登录失败：${response.message}`)
+      uni.showToast({
+        title: `登录失败：${response.message}`,
+        icon: 'none',
+      })
     }
   }
   catch (error) {
     console.error('登录错误:', error)
-    alert('登录失败，请重试')
+    uni.showToast({
+      title: '登录失败，请重试',
+      icon: 'none',
+    })
   }
   finally {
     loading.value = false
@@ -168,17 +177,26 @@ async function handleLogin() {
 
 async function handleRegister() {
   if (!registerForm.username || !registerForm.password || !registerForm.confirmPassword) {
-    alert('请填写完整信息')
+    uni.showToast({
+      title: '请填写完整信息',
+      icon: 'none',
+    })
     return
   }
 
   if (registerForm.password !== registerForm.confirmPassword) {
-    alert('两次输入的密码不一致')
+    uni.showToast({
+      title: '两次输入的密码不一致',
+      icon: 'none',
+    })
     return
   }
 
   if (registerForm.password.length < 6) {
-    alert('密码长度至少6位')
+    uni.showToast({
+      title: '密码长度至少6位',
+      icon: 'none',
+    })
     return
   }
 
@@ -189,7 +207,10 @@ async function handleRegister() {
     const response = await fakeRegister(registerForm.username, registerForm.password)
 
     if (response.success) {
-      alert('注册成功，请登录')
+      uni.showToast({
+        title: '注册成功，请登录',
+        icon: 'success',
+      })
       showRegister.value = false
       // 清空注册表单
       Object.assign(registerForm, {
@@ -199,12 +220,18 @@ async function handleRegister() {
       })
     }
     else {
-      alert(`注册失败：${response.message}`)
+      uni.showToast({
+        title: `注册失败：${response.message}`,
+        icon: 'none',
+      })
     }
   }
   catch (error) {
     console.error('注册错误:', error)
-    alert('注册失败，请重试')
+    uni.showToast({
+      title: '注册失败，请重试',
+      icon: 'none',
+    })
   }
   finally {
     loading.value = false
@@ -260,6 +287,7 @@ function fakeRegister(username: string, password: string): Promise<any> {
 
 <style scoped>
 @import '../theme/macos.css';
+@import '../theme/form.css';
 
 .login-container {
   min-height: 100vh;
@@ -306,22 +334,6 @@ function fakeRegister(username: string, password: string): Promise<any> {
   font-weight: 600;
   color: #333;
   font-size: 14px;
-}
-
-.form-input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid var(--macos-gray);
-  border-radius: var(--macos-radius);
-  font-size: 14px;
-  transition: all 0.3s ease;
-  box-sizing: border-box;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: var(--macos-green);
-  box-shadow: 0 0 0 3px rgba(40, 202, 66, 0.1);
 }
 
 .login-btn {

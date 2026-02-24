@@ -7,12 +7,14 @@
           <div class="item-label">
             标签名称
           </div>
-          <input
-            v-model="formData.name"
-            class="form-input"
-            placeholder="请输入标签名称"
-            :maxlength="20"
-          >
+          <div class="input-wrapper">
+            <input
+              v-model="formData.name"
+              class="form-input"
+              placeholder="请输入标签名称"
+              :maxlength="20"
+            >
+          </div>
           <div class="char-count">
             {{ formData.name.length }}/20
           </div>
@@ -90,6 +92,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import MacOSLayout from '@/components/MacOSLayout.vue'
+import { saveUsingPost } from '@/service/learning/tag'
 
 // 是否为编辑模式
 const tagId = ref<number>(0)
@@ -174,7 +177,7 @@ function handleDelete() {
 }
 
 // 保存
-function handleSave() {
+async function handleSave() {
   if (!formData.value.name.trim()) {
     uni.showToast({
       title: '请输入标签名称',
@@ -183,24 +186,38 @@ function handleSave() {
     return
   }
 
-  console.log('保存标签:', {
-    id: isEdit.value ? tagId.value : undefined,
-    ...formData.value,
-  })
+  uni.showLoading({ title: '保存中...' })
 
-  uni.showToast({
-    title: isEdit.value ? '修改成功' : '创建成功',
-    icon: 'success',
-  })
+  try {
+    await saveUsingPost({
+      body: {
+        id: isEdit.value ? tagId.value : undefined,
+        name: formData.value.name,
+        color: formData.value.backgroundColor,
+        description: formData.value.description,
+      },
+    })
 
-  setTimeout(() => {
-    uni.navigateBack()
-  }, 1000)
+    uni.showToast({
+      title: isEdit.value ? '修改成功' : '创建成功',
+      icon: 'success',
+    })
+    setTimeout(() => {
+      uni.navigateBack()
+    }, 1000)
+  }
+  catch (error) {
+    console.error('保存标签失败:', error)
+  }
+  finally {
+    uni.hideLoading()
+  }
 }
 </script>
 
 <style scoped>
 @import '../../../theme/macos.css';
+@import '../../../theme/form.css';
 
 .page-container {
   padding: 20px;
@@ -214,60 +231,6 @@ function handleSave() {
   padding: 24px;
   border: 2px solid #000;
   box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
-}
-
-.form-item {
-  margin-bottom: 24px;
-  position: relative;
-}
-
-.item-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 8px;
-}
-
-/* 输入框 */
-.form-input {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid var(--macos-gray);
-  border-radius: var(--macos-radius);
-  font-size: 14px;
-  transition: all 0.3s ease;
-  background: white;
-}
-
-.form-input:focus {
-  border-color: var(--macos-blue);
-  outline: none;
-}
-
-.form-textarea {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid var(--macos-gray);
-  border-radius: var(--macos-radius);
-  font-size: 14px;
-  min-height: 100px;
-  resize: vertical;
-  transition: all 0.3s ease;
-  background: white;
-  font-family: inherit;
-}
-
-.form-textarea:focus {
-  border-color: var(--macos-blue);
-  outline: none;
-}
-
-.char-count {
-  position: absolute;
-  right: 0;
-  bottom: -20px;
-  font-size: 12px;
-  color: var(--macos-gray);
 }
 
 /* 颜色选择器 */
@@ -342,11 +305,12 @@ function handleSave() {
 
 .color-text-input {
   flex: 1;
-  padding: 8px 12px;
+  height: 36px;
   border: 2px solid var(--macos-gray);
   border-radius: var(--macos-radius);
   font-size: 14px;
   background: white;
+  padding: 0 8px;
 }
 
 .color-text-input:focus {

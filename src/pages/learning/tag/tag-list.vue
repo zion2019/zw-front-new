@@ -1,19 +1,6 @@
 <template>
   <MacOSLayout>
     <div class="page-container">
-      <!-- 搜索栏 -->
-      <div class="search-bar">
-        <div class="search-input-wrapper">
-          <div class="i-carbon-search search-icon" />
-          <input
-            v-model="searchKeyword"
-            class="search-input"
-            placeholder="搜索标签名称"
-            @input="handleSearch"
-          >
-        </div>
-      </div>
-
       <!-- 标签列表 -->
       <z-paging
         ref="pagingRef"
@@ -120,42 +107,6 @@ function goToAddTag() {
   max-width: 800px;
   margin: 0 auto;
   top: 10px;
-}
-
-/* 搜索栏 */
-.search-bar {
-  margin-bottom: 16px;
-}
-
-.search-input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  background: white;
-  border: 2px solid var(--macos-gray);
-  border-radius: var(--macos-radius);
-  padding: 0 12px;
-  transition: all 0.3s ease;
-}
-
-.search-input-wrapper:focus-within {
-  border-color: var(--macos-blue);
-  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
-}
-
-.search-icon {
-  font-size: 18px;
-  color: var(--macos-gray);
-  margin-right: 8px;
-}
-
-.search-input {
-  flex: 1;
-  padding: 12px 0;
-  border: none;
-  outline: none;
-  font-size: 14px;
-  background: transparent;
 }
 
 /* 标签列表 */

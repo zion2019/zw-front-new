@@ -112,19 +112,19 @@
           <div class="header-left">
             <span class="review-count" :class="reviewCountClass">
               <template v-if="reviewStatus.todaySubjectTotalCnt === 0">
-                There is no subject to review today,enjoy!
+                今日无复习!
               </template>
               <template v-else-if="reviewStatus.todaySubjectTotalCnt - reviewStatus.todayFinishedSubjectCnt === 0">
-                Great! all subjects have been reviewed!
+                今日事毕!
               </template>
               <template v-else>
-                Today's subjects to review:
+                待复习科目:
                 <span class="number-bubble">{{ reviewStatus.todaySubjectTotalCnt - reviewStatus.todayFinishedSubjectCnt }}</span>
               </template>
             </span>
           </div>
           <div class="header-right" @click="goToLearning">
-            <span class="learning-home-link">More →</span>
+            <span class="learning-home-link">更多 →</span>
           </div>
         </div>
 

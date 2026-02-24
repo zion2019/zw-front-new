@@ -67,12 +67,14 @@
           <div class="item-label">
             拆解点名称
           </div>
-          <input
-            v-model="formData.name"
-            class="form-input"
-            placeholder="请输入拆解点名称"
-            :maxlength="50"
-          >
+          <div class="input-wrapper">
+            <input
+              v-model="formData.name"
+              class="form-input"
+              placeholder="请输入拆解点名称"
+              :maxlength="50"
+            >
+          </div>
           <div class="char-count">
             {{ formData.name.length }}/50
           </div>
@@ -337,55 +339,12 @@ function handleSave() {
 
 <style scoped>
 @import '../../../theme/macos.css';
+@import '../../../theme/form.css';
 
 .page-container {
   padding: 20px;
   max-width: 800px;
   margin: 0 auto;
-}
-
-.form-content {
-  background: white;
-  border-radius: var(--macos-radius-large);
-  padding: 24px;
-  border: 2px solid #000;
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
-}
-
-.form-item {
-  margin-bottom: 24px;
-  position: relative;
-}
-
-.item-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 8px;
-}
-
-/* 输入框 */
-.form-input {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid var(--macos-gray);
-  border-radius: var(--macos-radius);
-  font-size: 14px;
-  transition: all 0.3s ease;
-  background: white;
-}
-
-.form-input:focus {
-  border-color: var(--macos-blue);
-  outline: none;
-}
-
-.char-count {
-  position: absolute;
-  right: 0;
-  bottom: -20px;
-  font-size: 12px;
-  color: var(--macos-gray);
 }
 
 /* 学科展示卡片 */

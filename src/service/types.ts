@@ -27,3 +27,17 @@ export type UserItem = {
   nickname: string;
   avatar: string;
 };
+
+export type TagQO = {
+  id?: number;
+  name: string;
+  color: string;
+  userId?: number;
+  description?: string;
+};
+
+export type SaveUsingPostResponse = {
+  code: number;
+  msg: string;
+  data: boolean;
+};

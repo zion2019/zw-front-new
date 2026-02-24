@@ -4,7 +4,9 @@
       <div class="form-content">
         <!-- 封面图片 -->
         <div class="form-item">
-          <div class="item-label">封面</div>
+          <div class="item-label">
+            封面
+          </div>
           <div class="cover-upload" @click="chooseCover">
             <image
               v-if="formData.coverImage"
@@ -13,27 +15,39 @@
               class="cover-preview"
             />
             <div v-else class="upload-placeholder">
-              <div class="upload-icon">📷</div>
-              <div class="upload-text">点击上传封面</div>
+              <div class="upload-icon">
+                📷
+              </div>
+              <div class="upload-text">
+                点击上传封面
+              </div>
             </div>
           </div>
         </div>
 
         <!-- 名称 -->
         <div class="form-item">
-          <div class="item-label">名称</div>
-          <input
-            v-model="formData.name"
-            class="form-input"
-            placeholder="请输入科目名称"
-            :maxlength="50"
-          >
-          <div class="char-count">{{ formData.name.length }}/50</div>
+          <div class="item-label">
+            名称
+          </div>
+          <div class="input-wrapper">
+            <input
+              v-model="formData.name"
+              class="form-input"
+              placeholder="请输入科目名称"
+              :maxlength="50"
+            >
+          </div>
+          <div class="char-count">
+            {{ formData.name.length }}/50
+          </div>
         </div>
 
         <!-- 标签 -->
         <div class="form-item">
-          <div class="item-label">标签</div>
+          <div class="item-label">
+            标签
+          </div>
           <div class="tag-select-wrapper">
             <div class="selected-tags">
               <div
@@ -74,7 +88,9 @@
           </div>
           <!-- 常用标签枚举 -->
           <div class="common-tags">
-            <div class="common-tags-label">常用标签：</div>
+            <div class="common-tags-label">
+              常用标签：
+            </div>
             <div
               v-for="tag in commonTags"
               :key="tag"
@@ -88,14 +104,18 @@
 
         <!-- 描述 -->
         <div class="form-item">
-          <div class="item-label">描述</div>
+          <div class="item-label">
+            描述
+          </div>
           <textarea
             v-model="formData.description"
             class="form-textarea"
             placeholder="请输入科目描述"
             :maxlength="500"
           />
-          <div class="char-count">{{ formData.description.length }}/500</div>
+          <div class="char-count">
+            {{ formData.description.length }}/500
+          </div>
         </div>
 
         <!-- 操作按钮 -->
@@ -140,9 +160,23 @@ const commonTags = ['Vue', 'React', 'TypeScript']
 
 // 所有可选标签（可以根据需要扩展）
 const allTags = [
-  'Vue', 'React', 'TypeScript', 'JavaScript', 'Python',
-  'Java', 'Go', 'Rust', 'C++', '前端', '后端', '全栈',
-  '移动开发', '小程序', 'Node.js', 'Spring Boot', 'Docker'
+  'Vue',
+  'React',
+  'TypeScript',
+  'JavaScript',
+  'Python',
+  'Java',
+  'Go',
+  'Rust',
+  'C++',
+  '前端',
+  '后端',
+  '全栈',
+  '移动开发',
+  '小程序',
+  'Node.js',
+  'Spring Boot',
+  'Docker',
 ]
 
 // 过滤后的标签列表
@@ -152,8 +186,8 @@ const filteredTags = computed(() => {
   }
   const searchLower = tagInput.value.toLowerCase()
   return allTags.filter(tag =>
-    tag.toLowerCase().includes(searchLower) &&
-    !formData.value.tags.includes(tag)
+    tag.toLowerCase().includes(searchLower)
+    && !formData.value.tags.includes(tag),
   )
 })
 
@@ -291,31 +325,12 @@ function handleSave() {
 
 <style scoped>
 @import '../../../theme/macos.css';
+@import '../../../theme/form.css';
 
 .page-container {
   padding: 20px;
   max-width: 600px;
   margin: 0 auto;
-}
-
-.form-content {
-  background: white;
-  border-radius: var(--macos-radius-large);
-  padding: 24px;
-  border: 2px solid #000;
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
-}
-
-.form-item {
-  margin-bottom: 24px;
-  position: relative;
-}
-
-.item-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 8px;
 }
 
 /* 封面上传 */
@@ -355,48 +370,6 @@ function handleSave() {
 
 .upload-text {
   font-size: 14px;
-}
-
-/* 输入框 */
-.form-input {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid var(--macos-gray);
-  border-radius: var(--macos-radius);
-  font-size: 14px;
-  transition: all 0.3s ease;
-  background: white;
-}
-
-.form-input:focus {
-  border-color: var(--macos-blue);
-  outline: none;
-}
-
-.form-textarea {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid var(--macos-gray);
-  border-radius: var(--macos-radius);
-  font-size: 14px;
-  min-height: 120px;
-  resize: vertical;
-  transition: all 0.3s ease;
-  background: white;
-  font-family: inherit;
-}
-
-.form-textarea:focus {
-  border-color: var(--macos-blue);
-  outline: none;
-}
-
-.char-count {
-  position: absolute;
-  right: 0;
-  bottom: -20px;
-  font-size: 12px;
-  color: var(--macos-gray);
 }
 
 /* 标签选择器 */

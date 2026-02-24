@@ -4,34 +4,48 @@
       <div class="form-content">
         <!-- 序号 -->
         <div class="form-item">
-          <div class="item-label">序号</div>
-          <input
-            v-model="formData.sequence"
-            type="number"
-            class="form-input"
-            placeholder="请输入序号"
-            min="1"
-          >
-          <div class="char-hint">间隔阶段的序号，从小到大排列</div>
+          <div class="item-label">
+            序号
+          </div>
+          <div class="input-wrapper">
+            <input
+              v-model="formData.sequence"
+              type="number"
+              class="form-input"
+              placeholder="请输入序号"
+              min="1"
+            >
+          </div>
+          <div class="char-hint">
+            间隔阶段的序号，从小到大排列
+          </div>
         </div>
 
         <!-- 间隔时间 -->
         <div class="form-item">
-          <div class="item-label">间隔时间（小时）</div>
-          <input
-            v-model="formData.intervalHours"
-            type="number"
-            class="form-input"
-            placeholder="请输入间隔时间"
-            min="0"
-            step="0.1"
-          >
-          <div class="char-hint">距离上次复习的时间间隔</div>
+          <div class="item-label">
+            间隔时间（小时）
+          </div>
+          <div class="input-wrapper">
+            <input
+              v-model="formData.intervalHours"
+              type="number"
+              class="form-input"
+              placeholder="请输入间隔时间"
+              min="0"
+              step="0.1"
+            >
+          </div>
+          <div class="char-hint">
+            距离上次复习的时间间隔
+          </div>
         </div>
 
         <!-- 掌握程度 -->
         <div class="form-item">
-          <div class="item-label">掌握程度</div>
+          <div class="item-label">
+            掌握程度
+          </div>
           <div class="mastery-options">
             <div
               v-for="option in masteryOptions"
@@ -45,8 +59,12 @@
                   <div :class="option.iconClass" />
                 </div>
                 <div class="mastery-info">
-                  <div class="mastery-name">{{ option.name }}</div>
-                  <div class="mastery-desc">{{ option.description }}</div>
+                  <div class="mastery-name">
+                    {{ option.name }}
+                  </div>
+                  <div class="mastery-desc">
+                    {{ option.description }}
+                  </div>
                 </div>
               </div>
               <div v-if="formData.requiredMasteryLevel === option.value" class="check-icon">
@@ -208,55 +226,12 @@ function handleSave() {
 
 <style scoped>
 @import '../../../theme/macos.css';
+@import '../../../theme/form.css';
 
 .page-container {
   padding: 20px;
   max-width: 600px;
   margin: 0 auto;
-}
-
-.form-content {
-  background: white;
-  border-radius: var(--macos-radius-large);
-  padding: 24px;
-  border: 2px solid #000;
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
-}
-
-.form-item {
-  margin-bottom: 24px;
-  position: relative;
-}
-
-.item-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 8px;
-}
-
-/* 输入框 */
-.form-input {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid var(--macos-gray);
-  border-radius: var(--macos-radius);
-  font-size: 14px;
-  transition: all 0.3s ease;
-  background: white;
-}
-
-.form-input:focus {
-  border-color: var(--macos-blue);
-  outline: none;
-}
-
-.char-hint {
-  position: absolute;
-  right: 0;
-  bottom: -20px;
-  font-size: 11px;
-  color: var(--macos-gray);
 }
 
 /* 掌握程度选项 */
