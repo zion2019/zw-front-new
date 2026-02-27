@@ -34,10 +34,22 @@ export type TagQO = {
   color: string;
   userId?: number;
   description?: string;
+  pageNo?: number;
+  pageSize?: number;
 };
 
-export type SaveUsingPostResponse = {
-  code: number;
-  msg: string;
-  data: boolean;
+export type TagVO = {
+  id: number;
+  name: string;
+  color: string;
+  userId: number;
+  description?: string;
 };
+
+export type Page<T> = {
+  pageNo: number;
+  pageSize: number;
+  total: number;
+  dataList: T[];
+};
+

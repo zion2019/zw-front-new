@@ -5,7 +5,8 @@
       <z-paging
         ref="pagingRef"
         v-model="tagList"
-        :auto-show-back-to-top="true"
+        :fixed="false"
+        :auto-show-back-to-top="false"
         @query="queryList"
       >
         <div class="tag-list">
@@ -14,11 +15,16 @@
             :key="tag.id"
             class="tag-card anime-element card-base"
           >
-            <div
-              class="tag-name"
-              :style="{ background: tag.backgroundColor }"
-            >
-              {{ tag.name }}
+            <div class="tag-left">
+              <div
+                class="tag-name"
+                :style="{ background: tag.backgroundColor }"
+              >
+                {{ tag.name }}
+              </div>
+              <div class="tag-description">
+                {{ tag.description || '暂无描述' }}
+              </div>
             </div>
             <div class="edit-icon-wrapper" @click.stop="editTag(tag)">
               <div class="i-carbon-edit text-black" />
@@ -38,6 +44,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import MacOSLayout from '@/components/MacOSLayout.vue'
+import { pageUsingGet } from '@/service/learning/tag'
 
 interface Tag {
   id: number
@@ -57,35 +64,49 @@ function handleSearch() {
 }
 
 // 查询列表数据
-function queryList(pageNo: number, pageSize: number) {
-  // 模拟异步请求
-  setTimeout(() => {
-    const colors = ['#667eea', '#f56565', '#48bb78', '#ed8936', '#9f7aea', '#38b2ac', '#ed64a6']
-    const mockData: Tag[] = Array.from({ length: pageSize }, (_, index) => {
-      const id = (pageNo - 1) * pageSize + index + 1
-      const name = searchKeyword.value
-        ? `${searchKeyword.value}${id}`
-        : `标签${id}`
-      return {
-        id,
-        name,
-        description: `这是标签${id}的描述信息`,
-        backgroundColor: colors[index % colors.length],
-      }
+async function queryList(pageNo: number, pageSize: number) {
+  try {
+    const res = await pageUsingGet({
+      params: {
+        pageNo,
+        pageSize,
+        name: searchKeyword.value || undefined,
+        color: '',
+      },
     })
 
-    // 过滤搜索结果
-    const filteredData = searchKeyword.value
-      ? mockData.filter(tag => tag.name.includes(searchKeyword.value))
-      : mockData
+    const pageData = res as unknown as { dataList: any[], total: number }
 
-    pagingRef.value?.complete(filteredData)
-  }, 500)
+    if (pageData) {
+      const dataList = pageData.dataList || []
+      const formattedList: Tag[] = dataList.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        description: item.description || '',
+        backgroundColor: item.color,
+      }))
+      pagingRef.value?.complete(formattedList)
+    }
+    else {
+      uni.showToast({
+        title: '加载失败',
+        icon: 'none',
+      })
+      pagingRef.value?.complete([])
+    }
+  }
+  catch (error) {
+    console.error('加载标签列表失败:', error)
+    uni.showToast({
+      title: '加载失败',
+      icon: 'none',
+    })
+    pagingRef.value?.complete([])
+  }
 }
 
 // 编辑标签
 function editTag(tag: Tag) {
-  console.log('编辑标签:', tag.id)
   uni.navigateTo({
     url: `/pages/learning/tag/tag-form?id=${tag.id}`,
   })
@@ -103,8 +124,9 @@ function goToAddTag() {
 @import '../../../theme/macos.css';
 
 .page-container {
-  padding: 20px;
+  padding: 5px;
   max-width: 800px;
+  max-height: 100%;
   margin: 0 auto;
   top: 10px;
 }
@@ -122,6 +144,15 @@ function goToAddTag() {
   justify-content: space-between;
   padding: 16px;
   cursor: pointer;
+}
+
+.tag-left {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
 }
 
 /* 公共卡片样式 */
@@ -144,6 +175,16 @@ function goToAddTag() {
   font-size: 14px;
   font-weight: 600;
   display: inline-block;
+  flex-shrink: 0;
+}
+
+.tag-description {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .edit-icon-wrapper {
@@ -198,7 +239,8 @@ function goToAddTag() {
 /* 响应式设计 */
 @media (max-width: 768px) {
   .page-container {
-    padding: 16px;
+    padding: 5px;
+    height: 100%;
   }
 
   .search-input {

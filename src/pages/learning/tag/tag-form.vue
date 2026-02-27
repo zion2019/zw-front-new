@@ -92,10 +92,10 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import MacOSLayout from '@/components/MacOSLayout.vue'
-import { saveUsingPost } from '@/service/learning/tag'
+import { deleteUsingDelete, infoUsingGet, saveUsingPost } from '@/service/learning/tag'
 
 // 是否为编辑模式
-const tagId = ref<number>(0)
+const tagId = ref(0)
 const isEdit = computed(() => !!tagId.value)
 
 // 表单数据
@@ -131,18 +131,35 @@ onMounted(() => {
   const options = currentPage.options || {}
 
   if (options.id) {
-    tagId.value = Number.parseInt(options.id, 10)
+    tagId.value = options.id
     loadTagDetail()
   }
 })
 
 // 加载标签详情
-function loadTagDetail() {
-  // 模拟数据
-  formData.value = {
-    name: `标签${tagId.value}`,
-    description: '这是一个标签描述',
-    backgroundColor: presetColors[tagId.value % presetColors.length],
+async function loadTagDetail() {
+  try {
+    const info = await infoUsingGet({ id: tagId.value })
+    if (info) {
+      formData.value = {
+        name: info.name,
+        description: info.description || '',
+        backgroundColor: info.color,
+      }
+    }
+    else {
+      uni.showToast({
+        title: '加载失败',
+        icon: 'none',
+      })
+    }
+  }
+  catch (error) {
+    console.error('加载标签详情失败:', error)
+    uni.showToast({
+      title: '加载失败',
+      icon: 'none',
+    })
   }
 }
 
@@ -157,20 +174,27 @@ function handleCancel() {
 }
 
 // 删除
-function handleDelete() {
+async function handleDelete() {
   uni.showModal({
     title: '确认删除',
     content: '确定要删除这个标签吗？',
-    success: (res) => {
+    success: async (res) => {
       if (res.confirm) {
-        console.log('删除标签:', tagId.value)
-        uni.showToast({
-          title: '删除成功',
-          icon: 'success',
-        })
-        setTimeout(() => {
-          uni.navigateBack()
-        }, 1000)
+        try {
+          await deleteUsingDelete({ id: tagId.value })
+          uni.showToast({
+            title: '删除成功',
+            icon: 'success',
+          })
+          uni.navigateTo({ url: '/pages/learning/tag/tag-list' })
+        }
+        catch (error) {
+          console.error('删除标签失败:', error)
+          uni.showToast({
+            title: '删除失败',
+            icon: 'none',
+          })
+        }
       }
     },
   })
@@ -202,12 +226,14 @@ async function handleSave() {
       title: isEdit.value ? '修改成功' : '创建成功',
       icon: 'success',
     })
-    setTimeout(() => {
-      uni.navigateBack()
-    }, 1000)
+    uni.navigateTo({ url: '/pages/learning/tag/tag-list' })
   }
   catch (error) {
     console.error('保存标签失败:', error)
+    uni.showToast({
+      title: '保存失败',
+      icon: 'none',
+    })
   }
   finally {
     uni.hideLoading()
