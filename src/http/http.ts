@@ -101,7 +101,7 @@ export function http<T>(options: CustomRequestOptions) {
               title: responseData.msg || responseData.message || '请求错误',
             })
           }
-          return resolve(responseData.data)
+          return resolve(responseData.data ? responseData.data : responseData.dataList)
         }
 
         // 处理其他错误

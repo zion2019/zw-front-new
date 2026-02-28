@@ -20,6 +20,21 @@ export function pageUsingGet({
   });
 }
 
+/** 获取最近使用的标签 GET /learn/subject/tag/recently */
+export function recentlyTagsUsingGet({
+  params,
+  options,
+}: {
+  params: { showNum: number };
+  options?: CustomRequestOptions_;
+}) {
+  return request('/learn/subject/tag/recently', {
+    method: 'GET',
+    params,
+    ...(options || {}),
+  });
+}
+
 /** 标签保存或更新 POST /learn/tag */
 export function saveUsingPost({
   body,
