@@ -94,45 +94,21 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import MacOSLayout from '@/components/MacOSLayout.vue'
+import { deleteIntervalUsingDelete, infoIntervalUsingGet, MASTERY_OPTIONS, saveIntervalUsingPost } from '@/service/learning/strategy'
 
 // 是否为编辑模式
-const intervalId = ref<number>(0)
+const intervalId = ref<string>()
 const isEdit = computed(() => !!intervalId.value)
-const strategyId = ref<number>(0)
+const strategyId = ref<string>()
 
 // 掌握程度选项
-const masteryOptions = [
-  {
-    value: 0,
-    name: '陌生',
-    description: '初始状态，第一次学习',
-    iconClass: 'i-carbon-face-unknown-filled text-gray-500',
-  },
-  {
-    value: 1,
-    name: '熟悉',
-    description: '第一阶段，初步了解',
-    iconClass: 'i-carbon-face-smile-filled text-blue-500',
-  },
-  {
-    value: 2,
-    name: '掌握',
-    description: '第二阶段，基本掌握',
-    iconClass: 'i-carbon-face-wink-filled text-orange-500',
-  },
-  {
-    value: 3,
-    name: '精通',
-    description: '最终阶段，完全掌握',
-    iconClass: 'i-carbon-star-filled text-yellow-500',
-  },
-]
+const masteryOptions = MASTERY_OPTIONS
 
 // 表单数据
 const formData = ref({
   sequence: 1,
   intervalHours: 1,
-  requiredMasteryLevel: 0 as 0 | 1 | 2 | 3,
+  requiredMasteryLevel: 'STRANGER' as 'STRANGER' | 'FAMILIAR' | 'UNDERSTAND' | 'MASTER',
 })
 
 // 页面加载
@@ -141,26 +117,46 @@ onMounted(() => {
   const currentPage = pages[pages.length - 1] as any
   const options = currentPage.options || {}
 
-  strategyId.value = Number.parseInt(options.strategyId || '0', 10)
+  strategyId.value = options.strategyId
 
   if (options.id) {
-    intervalId.value = Number.parseInt(options.id, 10)
+    intervalId.value = options.id
     loadIntervalDetail()
   }
 })
 
-// 加载间隔配置详情
-function loadIntervalDetail() {
-  // 模拟数据
-  formData.value = {
-    sequence: intervalId.value,
-    intervalHours: intervalId.value * 12,
-    requiredMasteryLevel: (intervalId.value - 1) % 4 as 0 | 1 | 2 | 3,
+// 加载间隔配置详情（编辑模式）
+async function loadIntervalDetail() {
+  if (!intervalId.value)
+    return
+
+  uni.showLoading({ title: '加载中...' })
+
+  try {
+    const res = await infoIntervalUsingGet({
+      id: intervalId.value,
+    })
+
+    formData.value = {
+      sequence: res.sequence,
+      intervalHours: res.intervalHours,
+      requiredMasteryLevel: res.requiredMasteryLevel,
+    }
+  }
+  catch (error) {
+    console.error('加载间隔配置失败:', error)
+    uni.showToast({
+      title: '加载失败',
+      icon: 'none',
+    })
+  }
+  finally {
+    uni.hideLoading()
   }
 }
 
 // 选择掌握程度
-function selectMastery(level: 0 | 1 | 2 | 3) {
+function selectMastery(level: 'STRANGER' | 'FAMILIAR' | 'UNDERSTAND' | 'MASTER') {
   formData.value.requiredMasteryLevel = level
 }
 
@@ -170,27 +166,36 @@ function handleCancel() {
 }
 
 // 删除
-function handleDelete() {
+async function handleDelete() {
   uni.showModal({
     title: '确认删除',
     content: '确定要删除这个间隔配置吗？',
-    success: (res) => {
+    success: async (res) => {
       if (res.confirm) {
-        console.log('删除间隔配置:', intervalId.value)
-        uni.showToast({
-          title: '删除成功',
-          icon: 'success',
-        })
-        setTimeout(() => {
-          uni.navigateBack()
-        }, 1000)
+        try {
+          await deleteIntervalUsingDelete({ id: intervalId.value })
+          uni.showToast({
+            title: '删除成功',
+            icon: 'success',
+          })
+          setTimeout(() => {
+            uni.navigateBack()
+          }, 1000)
+        }
+        catch (error) {
+          console.error('删除间隔配置失败:', error)
+          uni.showToast({
+            title: '删除失败',
+            icon: 'none',
+          })
+        }
       }
     },
   })
 }
 
 // 保存
-function handleSave() {
+async function handleSave() {
   if (!formData.value.sequence || formData.value.sequence < 1) {
     uni.showToast({
       title: '请输入有效的序号',
@@ -207,20 +212,37 @@ function handleSave() {
     return
   }
 
-  console.log('保存间隔配置:', {
-    id: isEdit.value ? intervalId.value : undefined,
-    strategyId: strategyId.value,
-    ...formData.value,
-  })
+  uni.showLoading({ title: '保存中...' })
 
-  uni.showToast({
-    title: isEdit.value ? '修改成功' : '创建成功',
-    icon: 'success',
-  })
+  try {
+    await saveIntervalUsingPost({
+      body: {
+        id: isEdit.value ? intervalId.value : undefined,
+        strategyId: strategyId.value,
+        sequence: formData.value.sequence,
+        intervalHours: formData.value.intervalHours,
+        requiredMasteryLevel: formData.value.requiredMasteryLevel,
+      },
+    })
 
-  setTimeout(() => {
-    uni.navigateBack()
-  }, 1000)
+    uni.showToast({
+      title: isEdit.value ? '修改成功' : '创建成功',
+      icon: 'success',
+    })
+    setTimeout(() => {
+      uni.navigateBack()
+    }, 1000)
+  }
+  catch (error) {
+    console.error('保存间隔配置失败:', error)
+    uni.showToast({
+      title: '保存失败',
+      icon: 'none',
+    })
+  }
+  finally {
+    uni.hideLoading()
+  }
 }
 </script>
 

@@ -126,7 +126,7 @@ function goToAddTag() {
 .page-container {
   padding: 5px;
   max-width: 800px;
-  max-height: 100%;
+  height: 100%;
   margin: 0 auto;
   top: 10px;
 }

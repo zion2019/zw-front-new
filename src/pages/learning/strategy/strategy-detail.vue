@@ -28,7 +28,9 @@
         <!-- 间隔配置列表区域 (70%高度) -->
         <div class="interval-section">
           <div class="section-header">
-            <div class="section-title">间隔配置</div>
+            <div class="section-title">
+              间隔配置
+            </div>
             <div class="add-interval-btn" @click="addInterval">
               <div class="i-carbon-add text-white" />
             </div>
@@ -44,7 +46,9 @@
                   <div class="sequence-badge">
                     {{ interval.sequence }}
                   </div>
-                  <div class="interval-title">第 {{ interval.sequence }} 阶段</div>
+                  <div class="interval-title">
+                    第 {{ interval.sequence }} 阶段
+                  </div>
                 </div>
                 <div class="interval-actions">
                   <div class="action-icon" @click="editInterval(interval)">
@@ -62,8 +66,8 @@
                 </div>
                 <div class="info-row">
                   <span class="info-label">掌握程度：</span>
-                  <span class="info-value mastery-badge" :class="getMasteryClass(interval.requiredMasteryLevel)">
-                    {{ getMasteryText(interval.requiredMasteryLevel) }}
+                  <span class="info-value mastery-badge" :class="getMasteryClassHandler(interval.requiredMasteryLevel)">
+                    {{ getMasteryTextHandler(interval.requiredMasteryLevel) }}
                   </span>
                 </div>
               </div>
@@ -84,102 +88,105 @@
 </template>
 
 <script setup lang="ts">
+import type { IntervalVO, StrategyDetailVO } from '@/service/learning/strategy'
 import { ref } from 'vue'
 import MacOSLayout from '@/components/MacOSLayout.vue'
+import { deleteIntervalUsingDelete, getMasteryClass, getMasteryText, infoUsingGet } from '@/service/learning/strategy'
 
-interface Strategy {
-  id: number
-  name: string
-  description: string
-  isDefault: boolean
-}
-
-interface Interval {
-  id: number
-  sequence: number
-  intervalHours: number
-  requiredMasteryLevel: 0 | 1 | 2 | 3
-}
-
-const strategyId = ref<number>(0)
+const strategyId = ref<string>()
 
 // 策略信息
-const strategyInfo = ref<Strategy>({
-  id: 0,
+const strategyInfo = ref<StrategyDetailVO>({
+  id: '',
   name: '',
   description: '',
   isDefault: false,
+  intervals: [],
 })
 
 // 间隔配置列表
-const intervalList = ref<Interval[]>([])
+const intervalList = ref<IntervalVO[]>([])
 
 // 页面加载
 onLoad((options: any) => {
   if (options.id) {
-    strategyId.value = Number.parseInt(options.id, 10)
-    loadStrategyDetail()
-  } else {
+    strategyId.value = options.id
     loadStrategyDetail()
   }
 })
 
 // 加载策略详情
-function loadStrategyDetail() {
-  // 模拟数据
-  strategyInfo.value = {
-    id: strategyId.value,
-    name: strategyId.value ? `学习策略${strategyId.value} - 艾宾浩斯记忆法` : '学习策略 - 艾宾浩斯记忆法',
-    description: '基于艾宾浩斯遗忘曲线，通过间隔重复复习来提高记忆效果。适合需要长期记忆的知识点。',
-    isDefault: strategyId.value === 1,
+async function loadStrategyDetail() {
+  try {
+    const info = await infoUsingGet({ id: strategyId.value })
+    if (info) {
+      strategyInfo.value = {
+        id: info.id,
+        name: info.name,
+        description: info.description,
+        isDefault: info.isDefault,
+        intervals: info.intervals || [],
+      }
+      intervalList.value = info.intervals || []
+    }
+    else {
+      uni.showToast({
+        title: '加载失败',
+        icon: 'none',
+      })
+    }
   }
-
-  // 模拟间隔配置数据
-  intervalList.value = [
-    { id: 1, sequence: 1, intervalHours: 1, requiredMasteryLevel: 0 },
-    { id: 2, sequence: 2, intervalHours: 12, requiredMasteryLevel: 1 },
-    { id: 3, sequence: 3, intervalHours: 24, requiredMasteryLevel: 2 },
-    { id: 4, sequence: 4, intervalHours: 72, requiredMasteryLevel: 3 },
-  ]
+  catch (error) {
+    console.error('加载策略详情失败:', error)
+    uni.showToast({
+      title: '加载失败',
+      icon: 'none',
+    })
+  }
 }
 
 // 编辑策略
 function editStrategy() {
-  console.log('编辑策略:', strategyId.value)
   uni.navigateTo({
-    url: `/pages/learning/strategy/strategy-form?id=${strategyId.value}`,
+    url: `/pages/learning/strategy/strategy-edit?id=${strategyId.value}`,
   })
 }
 
 // 添加间隔配置
 function addInterval() {
-  console.log('添加间隔配置')
   uni.navigateTo({
     url: `/pages/learning/strategy/strategy-interval?strategyId=${strategyId.value}`,
   })
 }
 
 // 编辑间隔配置
-function editInterval(interval: Interval) {
-  console.log('编辑间隔配置:', interval.id)
+function editInterval(interval: IntervalVO) {
   uni.navigateTo({
     url: `/pages/learning/strategy/strategy-interval?strategyId=${strategyId.value}&id=${interval.id}`,
   })
 }
 
 // 删除间隔配置
-function deleteInterval(interval: Interval) {
+function deleteInterval(interval: IntervalVO) {
   uni.showModal({
     title: '确认删除',
     content: '确定要删除这个间隔配置吗？',
-    success: (res) => {
+    success: async (res) => {
       if (res.confirm) {
-        const index = intervalList.value.findIndex(item => item.id === interval.id)
-        if (index > -1) {
-          intervalList.value.splice(index, 1)
+        try {
+          await deleteIntervalUsingDelete({ id: interval.id })
           uni.showToast({
             title: '删除成功',
             icon: 'success',
+          })
+          // 重新加载策略详情
+          await loadStrategyDetail()
+        }
+        catch (error) {
+          console.error('删除间隔配置失败:', error)
+          uni.showToast({
+            title: '删除失败',
+            icon: 'none',
           })
         }
       }
@@ -188,25 +195,13 @@ function deleteInterval(interval: Interval) {
 }
 
 // 获取掌握程度文本
-function getMasteryText(level: number) {
-  const map = {
-    0: '陌生',
-    1: '熟悉',
-    2: '掌握',
-    3: '精通',
-  }
-  return map[level as keyof typeof map] || '未知'
+function getMasteryTextHandler(level: string) {
+  return getMasteryText(level)
 }
 
 // 获取掌握程度样式类
-function getMasteryClass(level: number) {
-  const map = {
-    0: 'mastery-stranger',
-    1: 'mastery-familiar',
-    2: 'mastery-understand',
-    3: 'mastery-master',
-  }
-  return map[level as keyof typeof map] || ''
+function getMasteryClassHandler(level: string) {
+  return getMasteryClass(level)
 }
 </script>
 

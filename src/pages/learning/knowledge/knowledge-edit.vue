@@ -103,51 +103,11 @@
           <div class="item-label">
             学习策略
           </div>
-          <!-- 只读模式 -->
-          <div v-if="!canEditStrategy" class="strategy-display">
-            <div class="strategy-icon">
-              <div class="i-carbon-settings text-macos-blue" />
-            </div>
-            <div class="strategy-info">
-              <div class="strategy-name">
-                {{ strategyInfo.name }}
-              </div>
-              <div class="strategy-desc">
-                策略名称
-                <span v-if="strategyInfo.isDefault" class="default-badge">默认</span>
-              </div>
-            </div>
-          </div>
-          <!-- 可编辑模式 -->
-          <div v-else class="search-wrapper">
-            <u-input
-              v-model="strategySearchKeyword"
-              placeholder="搜索学习策略（最多显示10条）"
-              :border="true"
-              @focus="showStrategyList = true"
-              @update:model-value="searchStrategy"
-              @blur="handleStrategyBlur"
-            />
-            <div v-if="showStrategyList && strategySearchResults.length > 0" class="search-dropdown">
-              <div
-                v-for="item in strategySearchResults"
-                :key="item.id"
-                class="search-option"
-                @click="selectStrategy(item)"
-              >
-                <div class="search-option-icon">
-                  <div class="i-carbon-settings text-macos-gray" />
-                </div>
-                <div class="search-option-text">
-                  <span>{{ item.name }}</span>
-                  <span v-if="item.isDefault" class="default-small-badge">默认</span>
-                </div>
-              </div>
-            </div>
-            <div v-if="showStrategyList && strategySearchResults.length === 0 && strategySearchKeyword" class="search-empty">
-              未找到匹配的策略
-            </div>
-          </div>
+          <StrategyPicker
+            ref="strategyPickerRef"
+            v-model="selectedStrategyId"
+            @change="handleStrategyChange"
+          />
         </div>
 
         <!-- 知识点名称 -->
@@ -181,7 +141,7 @@
 
         <!-- 操作按钮 -->
         <div class="form-actions">
-          <div class="action-btn action-btn-cancel" @click="handleCancel">
+          <div class="action-btn act`ion-btn-cancel" @click="handleCancel">
             取消
           </div>
           <div v-if="isEdit" class="action-btn action-btn-delete" @click="handleDelete">
@@ -199,48 +159,46 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import MacOSLayout from '@/components/MacOSLayout.vue'
+import StrategyPicker from '@/components/StrategyPicker.vue'
 
-const knowledgeId = ref<number>(0)
-const subjectIdParam = ref<number>(0)
-const stageIdParam = ref<number>(0)
-const strategyIdParam = ref<number>(0)
+const knowledgeId = ref<string>()
+const subjectIdParam = ref<string>()
+const stageIdParam = ref<string>()
+const strategyIdParam = ref<string>()
 
 // 是否为编辑模式
 const isEdit = computed(() => !!knowledgeId.value)
 
 // 所属学科信息
 const subjectInfo = ref({
-  id: 0,
+  id: '',
   name: '',
 })
 
 // 所属阶段信息
 const stageInfo = ref({
-  id: 0,
+  id: '',
   name: '',
 })
 
 // 学习策略信息
 const strategyInfo = ref({
-  id: 0,
+  id: '',
   name: '',
   isDefault: false,
 })
 
+const selectedStrategyId = ref<string>('')
+
 // 学科搜索
 const subjectSearchKeyword = ref('')
 const showSubjectList = ref(false)
-const subjectSearchResults = ref<Array<{ id: number, name: string }>>([])
+const subjectSearchResults = ref<Array<{ id: string, name: string }>>([])
 
 // 阶段搜索
 const stageSearchKeyword = ref('')
 const showStageList = ref(false)
-const stageSearchResults = ref<Array<{ id: number, name: string }>>([])
-
-// 策略搜索
-const strategySearchKeyword = ref('')
-const showStrategyList = ref(false)
-const strategySearchResults = ref<Array<{ id: number, name: string, isDefault: boolean }>>([])
+const stageSearchResults = ref<Array<{ id: string, name: string }>>([])
 
 // 表单数据
 const formData = ref({
@@ -254,7 +212,6 @@ const formData = ref({
 // 新增模式下，如果没有传入ID参数，则可编辑
 const canEditSubject = computed(() => !isEdit.value)
 const canEditStage = computed(() => !isEdit.value)
-const canEditStrategy = computed(() => !isEdit.value)
 
 // 页面加载
 onMounted(() => {
@@ -263,13 +220,18 @@ onMounted(() => {
   const options = currentPage.options || {}
 
   if (options.id) {
-    knowledgeId.value = Number.parseInt(options.id, 10)
+    knowledgeId.value = options.id
     loadKnowledgeDetail()
   }
 
-  subjectIdParam.value = Number.parseInt(options.subjectId || '0', 10)
-  stageIdParam.value = Number.parseInt(options.stageId || '0', 10)
-  strategyIdParam.value = Number.parseInt(options.strategyId || '0', 10)
+  subjectIdParam.value = options.subjectId
+  stageIdParam.value = options.stageId
+  strategyIdParam.value = options.strategyId
+
+  // 如果传入了策略ID，设置默认选中值
+  if (strategyIdParam.value) {
+    selectedStrategyId.value = strategyIdParam.value
+  }
 
   // 如果传入了学科ID，加载学科信息
   if (subjectIdParam.value) {
@@ -279,11 +241,6 @@ onMounted(() => {
   // 如果传入了阶段ID，加载阶段信息
   if (stageIdParam.value) {
     loadStageInfo(stageIdParam.value)
-  }
-
-  // 如果传入了策略ID，加载策略信息
-  if (strategyIdParam.value) {
-    loadStrategyInfo(strategyIdParam.value)
   }
 })
 
@@ -295,16 +252,10 @@ function loadKnowledgeDetail() {
     description: '这是一个知识点描述',
     status: 'learning',
   }
-
-  // 如果已有策略ID，加载相关信息
-  if (strategyInfo.value.id) {
-    loadSubjectInfo(1)
-    loadStageInfo(1)
-  }
 }
 
 // 加载所属学科信息
-function loadSubjectInfo(subjectId: number) {
+function loadSubjectInfo(subjectId: string) {
   // 模拟数据
   subjectInfo.value = {
     id: subjectId,
@@ -313,7 +264,7 @@ function loadSubjectInfo(subjectId: number) {
 }
 
 // 加载所属阶段信息
-function loadStageInfo(stageId: number) {
+function loadStageInfo(stageId: string) {
   // 模拟数据
   stageInfo.value = {
     id: stageId,
@@ -321,13 +272,12 @@ function loadStageInfo(stageId: number) {
   }
 }
 
-// 加载学习策略信息
-function loadStrategyInfo(strategyId: number) {
-  // 模拟数据
+// 策略选择变化处理
+function handleStrategyChange(strategy: any) {
   strategyInfo.value = {
-    id: strategyId,
-    name: `学习策略 ${strategyId} - 艾宾浩斯记忆法`,
-    isDefault: strategyId === 1,
+    id: strategy.id,
+    name: strategy.name,
+    isDefault: strategy.isDefault,
   }
 }
 
@@ -341,7 +291,7 @@ function searchSubject(keyword: string) {
   // 模拟搜索
   setTimeout(() => {
     const mockResults = Array.from({ length: Math.min(10, keyword.length) + 1 }, (_, index) => ({
-      id: index + 1,
+      id: `subject-${index + 1}`,
       name: `${keyword}相关学科${index + 1}`,
     }))
     subjectSearchResults.value = mockResults
@@ -349,13 +299,13 @@ function searchSubject(keyword: string) {
 }
 
 // 选择学科
-function selectSubject(subject: { id: number, name: string }) {
+function selectSubject(subject: { id: string, name: string }) {
   subjectInfo.value = subject
   subjectSearchKeyword.value = ''
   subjectSearchResults.value = []
   showSubjectList.value = false
   // 重置阶段信息
-  stageInfo.value = { id: 0, name: '' }
+  stageInfo.value = { id: '', name: '' }
 }
 
 // 学科输入框失焦
@@ -375,7 +325,7 @@ function searchStage(keyword: string) {
   // 模拟搜索
   setTimeout(() => {
     const mockResults = Array.from({ length: Math.min(10, keyword.length) + 1 }, (_, index) => ({
-      id: index + 1,
+      id: `stage-${index + 1}`,
       name: `${keyword}相关阶段${index + 1}`,
     }))
     stageSearchResults.value = mockResults
@@ -383,7 +333,7 @@ function searchStage(keyword: string) {
 }
 
 // 选择阶段
-function selectStage(stage: { id: number, name: string }) {
+function selectStage(stage: { id: string, name: string }) {
   stageInfo.value = stage
   stageSearchKeyword.value = ''
   stageSearchResults.value = []
@@ -394,39 +344,6 @@ function selectStage(stage: { id: number, name: string }) {
 function handleStageBlur() {
   setTimeout(() => {
     showStageList.value = false
-  }, 200)
-}
-
-// 策略搜索
-function searchStrategy(keyword: string) {
-  if (!keyword.trim()) {
-    strategySearchResults.value = []
-    return
-  }
-
-  // 模拟搜索
-  setTimeout(() => {
-    const mockResults = Array.from({ length: Math.min(10, keyword.length) + 1 }, (_, index) => ({
-      id: index + 1,
-      name: `${keyword}相关策略${index + 1}`,
-      isDefault: index === 0,
-    }))
-    strategySearchResults.value = mockResults
-  }, 200)
-}
-
-// 选择策略
-function selectStrategy(strategy: { id: number, name: string, isDefault: boolean }) {
-  strategyInfo.value = strategy
-  strategySearchKeyword.value = ''
-  strategySearchResults.value = []
-  showStrategyList.value = false
-}
-
-// 策略输入框失焦
-function handleStrategyBlur() {
-  setTimeout(() => {
-    showStrategyList.value = false
   }, 200)
 }
 

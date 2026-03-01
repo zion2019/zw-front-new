@@ -5,6 +5,7 @@
       <z-paging
         ref="pagingRef"
         v-model="strategyList"
+        :fixed="false"
         :auto-show-back-to-top="true"
         @query="queryList"
       >
@@ -40,50 +41,66 @@
 </template>
 
 <script setup lang="ts">
+import type { StrategyVO } from '@/service/learning/strategy'
 import { ref } from 'vue'
 import MacOSLayout from '@/components/MacOSLayout.vue'
-
-interface Strategy {
-  id: number
-  name: string
-  description: string
-  isDefault: boolean
-}
+import { pageUsingGet } from '@/service/learning/strategy'
 
 // 策略列表数据
-const strategyList = ref<Strategy[]>([])
+const strategyList = ref<StrategyVO[]>([])
 const pagingRef = ref()
 
 // 查询列表数据
-function queryList(pageNo: number, pageSize: number) {
-  // 模拟异步请求
-  setTimeout(() => {
-    const mockData: Strategy[] = Array.from({ length: pageSize }, (_, index) => {
-      const id = (pageNo - 1) * pageSize + index + 1
-      return {
-        id,
-        name: `学习策略${id} - 艾宾浩斯记忆法`,
-        description: '基于艾宾浩斯遗忘曲线，通过间隔重复复习来提高记忆效果。适合需要长期记忆的知识点。',
-        isDefault: id === 1,
-      }
+async function queryList(pageNo: number, pageSize: number) {
+  try {
+    const res = await pageUsingGet({
+      params: {
+        pageNo,
+        pageSize,
+      },
     })
 
-    pagingRef.value?.complete(mockData)
-  }, 500)
+    const pageData = res as unknown as { dataList: any[], total: number }
+
+    if (pageData) {
+      const dataList = pageData.dataList || []
+      const formattedList: StrategyVO[] = dataList.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        description: item.description || '',
+        isDefault: item.isDefault,
+      }))
+      pagingRef.value?.complete(formattedList)
+    }
+    else {
+      uni.showToast({
+        title: '加载失败',
+        icon: 'none',
+      })
+      pagingRef.value?.complete([])
+    }
+  }
+  catch (error) {
+    console.error('加载策略列表失败:', error)
+    uni.showToast({
+      title: '加载失败',
+      icon: 'none',
+    })
+    pagingRef.value?.complete([])
+  }
 }
 
 // 跳转到策略详情
-function goToStrategyDetail(strategy: Strategy) {
-  console.log('跳转到策略详情:', strategy.id)
+function goToStrategyDetail(strategy: StrategyVO) {
   uni.navigateTo({
-    url: `/pages/learning/strategy/strategy-form?id=${strategy.id}`,
+    url: `/pages/learning/strategy/strategy-detail?id=${strategy.id}`,
   })
 }
 
 // 跳转到新增策略页面
 function goToAddStrategy() {
   uni.navigateTo({
-    url: '/pages/learning/strategy/strategy-form',
+    url: '/pages/learning/strategy/strategy-edit',
   })
 }
 </script>
@@ -94,6 +111,7 @@ function goToAddStrategy() {
 .page-container {
   padding: 20px;
   max-width: 800px;
+  height: 100%;
   margin: 0 auto;
   top: 10px;
 }
@@ -201,7 +219,8 @@ function goToAddStrategy() {
 /* 响应式设计 */
 @media (max-width: 768px) {
   .page-container {
-    padding: 16px;
+    padding: 5px;
+    height: 100%;
   }
 
   .strategy-card {
