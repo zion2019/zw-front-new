@@ -22,10 +22,10 @@ export function http<T>(options: CustomRequestOptions) {
       // 响应成功
       success: async (res) => {
         const responseData = res.data as IResponse<T>
-        const { code } = responseData
+        const { status } = responseData
 
         // 检查是否是401错误（包括HTTP状态码401或业务码401）
-        const isTokenExpired = res.statusCode === 401 || code === 401
+        const isTokenExpired = res.statusCode === 401 || status === 401
 
         if (isTokenExpired) {
           const tokenStore = useTokenStore()
@@ -95,11 +95,12 @@ export function http<T>(options: CustomRequestOptions) {
         // 处理其他成功状态（HTTP状态码200-299）
         if (res.statusCode >= 200 && res.statusCode < 300) {
           // 处理业务逻辑错误
-          if (code !== ResultEnum.Success0 && code !== ResultEnum.Success200) {
+          if (status !== ResultEnum.Success0 && status !== ResultEnum.Success200) {
             uni.showToast({
               icon: 'none',
-              title: responseData.msg || responseData.message || '请求错误',
+              title: `请求错误:${responseData.msg || responseData.message || 'unknown'}`,
             })
+            return reject(res)
           }
           return resolve(responseData.data ? responseData.data : responseData.dataList)
         }
