@@ -7,22 +7,12 @@
           <div class="item-label">
             封面
           </div>
-          <div class="cover-upload" @click="chooseCover">
-            <image
-              v-if="formData.coverImage"
-              :src="formData.coverImage"
-              mode="aspectFill"
-              class="cover-preview"
-            />
-            <div v-else class="upload-placeholder">
-              <div class="upload-icon">
-                📷
-              </div>
-              <div class="upload-text">
-                点击上传封面
-              </div>
-            </div>
-          </div>
+          <ImageUploader
+            v-model="formData.coverImage"
+            placeholder="点击上传封面"
+            :base-url="config.imageBaseUrl"
+            @upload-success="handleCoverUploadSuccess"
+          />
         </div>
 
         <!-- 名称 -->
@@ -85,7 +75,9 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import ImageUploader from '@/components/ImageUploader.vue'
 import MacOSLayout from '@/components/MacOSLayout.vue'
+import { config } from '@/config'
 import TagSelection from '@/pages/learning/tag/tag-selection.vue'
 
 // 是否为编辑模式
@@ -141,16 +133,9 @@ function handleTagsChange(tags) {
   // 这里可以添加自定义的业务逻辑
 }
 
-// 选择封面
-function chooseCover() {
-  uni.chooseImage({
-    count: 1,
-    sizeType: ['compressed'],
-    sourceType: ['album', 'camera'],
-    success: (res) => {
-      formData.value.coverImage = res.tempFilePaths[0]
-    },
-  })
+// 封面上传成功
+function handleCoverUploadSuccess(fileUrl: string, fileData: any) {
+  console.log('封面上传成功:', fileUrl, fileData)
 }
 
 // 取消
@@ -214,45 +199,6 @@ function handleSave() {
   margin: 0 auto;
 }
 
-/* 封面上传 */
-.cover-upload {
-  width: 100%;
-  height: 200px;
-  border: 2px dashed var(--macos-gray);
-  border-radius: var(--macos-radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background: #f8f8f8;
-  overflow: hidden;
-}
-
-.cover-upload:hover {
-  border-color: var(--macos-blue);
-  background: #f0f8ff;
-}
-
-.cover-preview {
-  width: 100%;
-  height: 100%;
-}
-
-.upload-placeholder {
-  text-align: center;
-  color: var(--macos-gray);
-}
-
-.upload-icon {
-  font-size: 40px;
-  margin-bottom: 8px;
-}
-
-.upload-text {
-  font-size: 14px;
-}
-
 /* 操作按钮 */
 .form-actions {
   display: flex;
@@ -312,18 +258,6 @@ function handleSave() {
 
   .form-content {
     padding: 16px;
-  }
-
-  .cover-upload {
-    height: 160px;
-  }
-
-  .upload-icon {
-    font-size: 32px;
-  }
-
-  .upload-text {
-    font-size: 12px;
   }
 
   .form-actions {
